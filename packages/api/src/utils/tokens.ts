@@ -118,7 +118,14 @@ const googleModels = {
   /* Max I/O is combined so we subtract the amount from max response tokens for actual total */
   gemma: 32768,
   'gemma-2': 32768,
-  'gemma-3': 32768,
+  /* Gemma 3n (E2B/E4B) and the small Gemma 3 1B keep a 32K window. */
+  'gemma-3n': 32768,
+  'gemma-3-1b': 32768,
+  /* Gemma 3 4B/12B/27B all ship a native 128K window. The size keys are explicit
+     so the longest-key match cannot fall back to the Gemma 1/2 32K bucket. */
+  'gemma-3': 131072,
+  'gemma-3-4b': 131072,
+  'gemma-3-12b': 131072,
   'gemma-3-27b': 131072,
   'gemma4:31b': 256000,
   'gemma4-31b': 256000,

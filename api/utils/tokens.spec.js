@@ -390,6 +390,14 @@ describe('getModelMaxTokens', () => {
     expect(getModelMaxTokens('gemma-2-9b-it', EModelEndpoint.google)).toBe(
       maxTokensMap[EModelEndpoint.google]['gemma-2'],
     );
+    expect(getModelMaxTokens('gemma-3-1b-it', EModelEndpoint.google)).toBe(32768);
+    expect(getModelMaxTokens('gemma-3n-e4b-it', EModelEndpoint.google)).toBe(32768);
+    /** Gemma 3 4B/12B/27B all have a 128K window; 32K applies to Gemma 1/2 only. */
+    expect(maxTokensMap[EModelEndpoint.google]['gemma-3']).toBe(131072);
+    expect(maxTokensMap[EModelEndpoint.google]['gemma-3-4b']).toBe(131072);
+    expect(maxTokensMap[EModelEndpoint.google]['gemma-3-12b']).toBe(131072);
+    expect(getModelMaxTokens('gemma-3-4b-it', EModelEndpoint.google)).toBe(131072);
+    expect(getModelMaxTokens('gemma-3-12b-it', EModelEndpoint.google)).toBe(131072);
     expect(getModelMaxTokens('gemma-3-27b-it', EModelEndpoint.google)).toBe(
       maxTokensMap[EModelEndpoint.google]['gemma-3-27b'],
     );
