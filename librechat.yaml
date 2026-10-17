@@ -695,12 +695,12 @@ actions:
 
 # Definition of custom endpoints
 endpoints:
-  # Google AI Studio (Gemini + Gemma).
-  # GOOGLE_KEY=user_provided in .env, so each user supplies their own key in the UI.
-  # Context windows resolve through packages/api/src/utils/tokens.ts:
-  # Gemma 3 4B/12B/27B -> 131,072 tokens (native 128K; only Gemma 1/2 use 32K),
-  # Gemma 4 31B and 26B-A4B -> 256,000 tokens. Sliding-window pruning therefore
-  # uses the model's full window instead of truncating Gemma 3 at 32K.
+  # Google AI Studio (Gemini only).
+  # Runs in BYOK (Bring Your Own Key) mode with GOOGLE_KEY=user_provided in .env.
+  # Gemma lives on its own custom endpoint below (`Gemma`) because it needs a
+  # separate model list, title model and display label. Context windows resolve
+  # through packages/api/src/utils/tokens.ts (Gemma 3 4B/12B/27B -> 131,072
+  # tokens, Gemma 4 31B/26B-A4B -> 256,000 tokens).
   google:
       titleConvo: true
       titleModel: 'gemini-2.5-flash'
@@ -721,13 +721,6 @@ endpoints:
         - 'gemini-2.5-flash-lite'
         - 'gemini-2.0-flash'
         - 'gemini-2.0-flash-lite'
-        # Gemma 4
-        - 'gemma-4-31b-it'
-        - 'gemma-4-26b-a4b-it'
-        # Gemma 3
-        - 'gemma-3-27b-it'
-        - 'gemma-3-12b-it'
-        - 'gemma-3-4b-it'
 
   # assistants:
   #   disableBuilder: false # Disable Assistants Builder Interface by setting to `true`
@@ -1130,13 +1123,37 @@ endpoints:
   #     #     deploymentName: claude-3-5-haiku@20241022  # Override for this model
 
   custom:
+    # Gemma via Google AI Studio's OpenAI-compatible gateway.
+    # Split out of the built-in `google` endpoint so Gemma keeps its own model
+    # list, title model and display label in the endpoint selector.
+    # Runs in BYOK (Bring Your Own Key) mode with user_provided key.
+    - name: 'Gemma'
+      apiKey: 'user_provided'
+      baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai'
+      models:
+        default:
+          # Gemma 4
+          - 'gemma-4-31b-it'
+          - 'gemma-4-26b-a4b-it'
+          # Gemma 3
+          - 'gemma-3-27b-it'
+          - 'gemma-3-12b-it'
+          - 'gemma-3-4b-it'
+          # Gemma 2 IDs (gemma-2-27b-it, gemma-2-9b-it) are retired on AI Studio.
+          # Uncomment only if your project still serves them.
+        # The list above is explicit; skip OpenAI-style /models discovery.
+        fetch: false
+      titleConvo: true
+      titleModel: 'gemma-3-12b-it'
+      modelDisplayLabel: 'Gemma'
+
     # xAI: Grok 4.7 uses the existing OpenAI-compatible chat and agent paths.
     # https://docs.x.ai/developers/grok-4-7
-    # Set XAI_API_KEY in your environment. No separate SpaceXAI provider is needed.
+    # Runs in BYOK (Bring Your Own Key) mode with user_provided key.
     - name: 'xai'
       # Optional: expose this endpoint only to users in the named tenant.
       # tenantId: 'your-tenant-id'
-      apiKey: '${XAI_API_KEY}'
+      apiKey: 'user_provided'
       baseURL: 'https://api.x.ai/v1'
       models:
         default: ['grok-4.7']
@@ -1151,9 +1168,10 @@ endpoints:
     # gateways (e.g. AI gateways, OpenCode Zen). The `baseURL` must be the API root
     # the Anthropic SDK appends `/v1/messages` to. List models explicitly: model
     # auto-fetch uses the OpenAI `/models` convention and is not used for this provider.
+    # Runs in BYOK (Bring Your Own Key) mode with user_provided key.
     - name: 'Claude-Compatible'
       provider: 'anthropic'
-      apiKey: '${ANTHROPIC_API_KEY}'
+      apiKey: 'user_provided'
       baseURL: 'https://api.anthropic.com'
       # (optional) headers forwarded on every request (e.g. for a reverse proxy);
       # values support the same placeholders as built-in endpoints.
@@ -1200,7 +1218,7 @@ endpoints:
 
     # Groq Example
     - name: 'groq'
-      apiKey: '${GROQ_API_KEY}'
+      apiKey: 'user_provided'
       baseURL: 'https://api.groq.com/openai/v1/'
       models:
         default:
@@ -1216,9 +1234,8 @@ endpoints:
 
     # Mistral AI Example
     - name: 'Mistral' # Unique name for the endpoint
-      # For `apiKey` and `baseURL`, you can use environment variables that you define.
-      # recommended environment variables:
-      apiKey: '${MISTRAL_API_KEY}'
+      # Runs in BYOK (Bring Your Own Key) mode with user_provided key.
+      apiKey: 'user_provided'
       baseURL: 'https://api.mistral.ai/v1'
 
       # Models configuration
@@ -1258,9 +1275,8 @@ endpoints:
 
     # OpenRouter Example
     - name: 'OpenRouter'
-      # For `apiKey` and `baseURL`, you can use environment variables that you define.
-      # recommended environment variables:
-      apiKey: '${OPENROUTER_KEY}'
+      # Runs in BYOK (Bring Your Own Key) mode with user_provided key.
+      apiKey: 'user_provided'
       baseURL: 'https://openrouter.ai/api/v1'
       headers:
         x-librechat-body-parentmessageid: '{{LIBRECHAT_BODY_PARENTMESSAGEID}}'
@@ -1274,9 +1290,9 @@ endpoints:
       modelDisplayLabel: 'OpenRouter'
 
     # DeepSeek (OpenAI-compatible API)
-    # Set DEEPSEEK_API_KEY in .env; the reference is resolved at startup.
+    # Runs in BYOK (Bring Your Own Key) mode with user_provided key.
     - name: 'DeepSeek'
-      apiKey: '${DEEPSEEK_API_KEY}'
+      apiKey: 'user_provided'
       baseURL: 'https://api.deepseek.com'
       models:
         default:

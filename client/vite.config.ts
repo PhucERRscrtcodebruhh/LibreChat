@@ -91,6 +91,7 @@ export default defineConfig(({ command }) => ({
     },
     copyPublicAssets(),
     VitePWA({
+      disable: true,
       injectRegister: 'auto', // 'auto' | 'manual' | 'disabled'
       registerType: 'autoUpdate', // 'prompt' | 'autoUpdate'
       devOptions: {
@@ -215,7 +216,15 @@ export default defineConfig(({ command }) => ({
   publicDir: command === 'serve' ? './public' : false,
   build: {
     sourcemap: buildSourceMap,
-    outDir: './dist',
+    /**
+     * Output goes to a fresh sibling directory instead of `./dist`: on Windows the
+     * previous `dist/` output can be held with handles that deny delete, and Vite's
+     * `vite:prepare-out-dir` empties the out directory with `fs.rmSync`, which then
+     * fails with EPERM. A new directory only ever gets written, never emptied, and it
+     * is swapped over `dist/` afterwards to match `api/config/paths.js`.
+     */
+    outDir: './dist_build',
+    emptyOutDir: true,
     minify: 'oxc',
     rolldownOptions: {
       preserveEntrySignatures: 'strict',
